@@ -19,56 +19,56 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin;
  */
 public class SteamdPlugin implements Plugin<Project> {
 
-	public static final String STEAMD_CONFIGURATION_NAME = "steamd";
-	public static final String STEAMD_EXTENSION_NAME = "steamd";
-	public static final String STEAMD_SOURCE_SUFFIX = "steamd";
+    public static final String STEAMD_CONFIGURATION_NAME = "steamd";
+    public static final String STEAMD_EXTENSION_NAME = "steamd";
+    public static final String STEAMD_SOURCE_SUFFIX = "steamd";
 
-	private final SourceDirectorySetFactory mSourceDirectorySetFactory;
+    private final SourceDirectorySetFactory mSourceDirectorySetFactory;
 
-	@Inject
-	public SteamdPlugin(final SourceDirectorySetFactory pSourceDirectorySetFactory) {
-		mSourceDirectorySetFactory = pSourceDirectorySetFactory;
-	}
+    @Inject
+    public SteamdPlugin(final SourceDirectorySetFactory pSourceDirectorySetFactory) {
+        mSourceDirectorySetFactory = pSourceDirectorySetFactory;
+    }
 
-	@Override
-	public void apply(final Project pProject) {
-		pProject.getPlugins().apply(BasePlugin.class);
-		pProject.getPlugins().apply(JavaPlugin.class);
+    @Override
+    public void apply(final Project pProject) {
+        pProject.getPlugins().apply(BasePlugin.class);
+        pProject.getPlugins().apply(JavaPlugin.class);
 
-		pProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().stream()
-				.filter(this::isDefaultSourceSet).forEach(sourceSet -> {
+        pProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().stream()
+                .filter(this::isDefaultSourceSet).forEach(sourceSet -> {
 
-					final SteamdSourceConvention tSourceConvention = new SteamdSourceConvention(sourceSet.getName(),
-							mSourceDirectorySetFactory);
-					new DslObject(sourceSet).getConvention().getPlugins().put(STEAMD_EXTENSION_NAME, tSourceConvention);
-					final String tSrcDir = String.format("src/%s/%s", sourceSet.getName(), STEAMD_EXTENSION_NAME);
-					tSourceConvention.getSteamd().srcDir(tSrcDir);
-					sourceSet.getAllSource().source(tSourceConvention.getSteamd());
+                    final SteamdSourceConvention tSourceConvention = new SteamdSourceConvention(sourceSet.getName(),
+                            mSourceDirectorySetFactory);
+                    new DslObject(sourceSet).getConvention().getPlugins().put(STEAMD_EXTENSION_NAME, tSourceConvention);
+                    final String tSrcDir = String.format("src/%s/%s", sourceSet.getName(), STEAMD_EXTENSION_NAME);
+                    tSourceConvention.getSteamd().srcDir(tSrcDir);
+                    sourceSet.getAllSource().source(tSourceConvention.getSteamd());
 
-					final String tTaskName = sourceSet.getTaskName("compile", "Steamd");
-					SteamdCompileTask tCompileTask = pProject.getTasks().create(tTaskName, SteamdCompileTask.class);
-					tCompileTask.setDescription("Processes the " + sourceSet.getName() + " steamd files.");
+                    final String tTaskName = sourceSet.getTaskName("compile", "Steamd");
+                    SteamdCompileTask tCompileTask = pProject.getTasks().create(tTaskName, SteamdCompileTask.class);
+                    tCompileTask.setDescription("Processes the " + sourceSet.getName() + " steamd files.");
 
-					tCompileTask.setSource(tSourceConvention.getSteamd());
+                    tCompileTask.setSource(tSourceConvention.getSteamd());
 
-					final String outputDirectoryName = String.format("gen-src/%s/%s", sourceSet.getName(),
-							STEAMD_EXTENSION_NAME);
-					final File outputDirectory = new File(pProject.getBuildDir(), outputDirectoryName);
-					tCompileTask.setOutputBaseDirectory(outputDirectory);
-					sourceSet.getJava().srcDir(outputDirectory);
+                    final String outputDirectoryName = String.format("gen-src/%s/%s", sourceSet.getName(),
+                            STEAMD_EXTENSION_NAME);
+                    final File outputDirectory = new File(pProject.getBuildDir(), outputDirectoryName);
+                    tCompileTask.setOutputBaseDirectory(outputDirectory);
+                    sourceSet.getJava().srcDir(outputDirectory);
 
-					pProject.getTasks().getByName(sourceSet.getCompileJavaTaskName()).dependsOn(tCompileTask);
+                    pProject.getTasks().getByName(sourceSet.getCompileJavaTaskName()).dependsOn(tCompileTask);
 
-					if (pProject.getPlugins().hasPlugin(EclipsePlugin.class)) {
-						tCompileTask
-								.finalizedBy(pProject.getTasks().getByName(EclipsePlugin.getECLIPSE_CP_TASK_NAME()));
-					}
-				});
+                    if (pProject.getPlugins().hasPlugin(EclipsePlugin.class)) {
+                        tCompileTask
+                                .finalizedBy(pProject.getTasks().getByName(EclipsePlugin.getECLIPSE_CP_TASK_NAME()));
+                    }
+                });
 
-		pProject.getExtensions().create("steamd", SteamdProjectExtension.class);
-	}
+        pProject.getExtensions().create("steamd", SteamdProjectExtension.class);
+    }
 
-	private boolean isDefaultSourceSet(SourceSet s) {
-		return s.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME) || s.getName().equals(SourceSet.TEST_SOURCE_SET_NAME);
-	}
+    private boolean isDefaultSourceSet(SourceSet s) {
+        return s.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME) || s.getName().equals(SourceSet.TEST_SOURCE_SET_NAME);
+    }
 }

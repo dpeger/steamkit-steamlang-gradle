@@ -19,7 +19,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 
 import de.peger.steamkit.steamlang.codegen.SteamdCodeGenContext;
 import de.peger.steamkit.steamlang.codegen.SteamdGenerator;
