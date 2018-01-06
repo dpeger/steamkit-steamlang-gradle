@@ -20,12 +20,14 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import de.peger.steamkit.steamlang.codegen.SteamdCodeGenContext;
 import de.peger.steamkit.steamlang.codegen.SteamdGenerator;
 
 /**
  * Compiles the steamd sources using the {@link SteamdGenerator}
- * 
+ *
  * @author dpeger
  */
 public class SteamdCompileTask extends SourceTask {
@@ -57,7 +59,8 @@ public class SteamdCompileTask extends SourceTask {
         final SteamdGenerator tGenerator = new SteamdGenerator(tContext);
         tGenerator.generate(tSourceFiles.toArray(new File[tSourceFiles.size()]));
     }
-
+    
+    @VisibleForTesting
     static void addOutputPackageMappings(final Map<String, String> pOutputPackages, final Collection<File> pSourceFiles,
             final SourceDirectorySet pSourceBaseDirectories, final SteamdCodeGenContext pContext) throws IOException {
 
@@ -69,13 +72,15 @@ public class SteamdCompileTask extends SourceTask {
             pContext.addOutputPackageMapping(tSourceFile.getName(), tPackage);
         }
     }
-
+    
+    @VisibleForTesting
     static String joinPackages(final String... tPackageParts) {
         final String tPackage = Arrays.asList(tPackageParts).stream().filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining("."));
         return tPackage;
     }
-
+    
+    @VisibleForTesting
     static String extractPackageFromFilePath(final File pSourceFile, final Set<File> pSrcDirs) throws IOException {
 
         final File tCanonicalSourceFile = pSourceFile.getCanonicalFile();
@@ -86,7 +91,6 @@ public class SteamdCompileTask extends SourceTask {
             tSourceFilePath = Optional.ofNullable(tSourceFilePath.getParentFile())
                     .orElseThrow(() -> new IllegalStateException("The source file '" + tCanonicalSourceFile.getPath()
                             + "' does not reside in any of the task's source directories."));
-
         }
 
         final String tBasePackage = StringUtils.join(tPackageList, '.');
